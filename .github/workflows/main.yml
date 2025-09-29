@@ -2,13 +2,14 @@ name: Telegram Bot CI
 
 on:
   push:
-    branches: master
+    branches: main
   pull_request:
-    branches: master
+    branches: main
 
 env:
   IMAGE_NAME: chmonya777/fullggback
   RELEASE_NAME: fullggback
+  NAMESPACE: fullgg
 
 jobs:
   build:
@@ -27,16 +28,17 @@ jobs:
     - name: Delete image locally
       run: |
         sudo podman rmi $IMAGE_NAME:$GITHUB_SHA
-#  deploy:
-#    needs: build
-#    runs-on: raspberrypi
-#    steps:
-#    - name: Apply deployment
-#      run: |
-#        helm secrets upgrade $RELEASE_NAME .helm \
-#          --install \
-#          --set-string image.name=$IMAGE_NAME \
-#          --set-string image.tag=$GITHUB_SHA \
-#          -f .helm/values.yaml
-#    - name: Wait for deploy
-#      run: kubectl rollout status deployment $RELEASE_NAME --timeout=300s
+  deploy:
+    needs: build
+    runs-on: raspberrypi
+    steps:
+    - name: Apply deployment
+      run: |
+        helm secrets upgrade $RELEASE_NAME .helm \
+          --install \
+          --set-string image.name=$IMAGE_NAME \
+          --set-string image.tag=$GITHUB_SHA \
+          --namespace=$NAMESPACE \
+          -f .helm/values.yaml
+    - name: Wait for deploy
+      run: kubectl rollout status deployment $RELEASE_NAME --namespace=$NAMESPACE --timeout=300s
