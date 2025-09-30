@@ -1,4 +1,5 @@
-config:
-  PORT: 6969
 image:
   name: fullggback
+web:
+  dns: true-steady-stinkbug.ngrok-free.app
+  port: 6969

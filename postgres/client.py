@@ -1,6 +1,6 @@
-from sqlalchemy import create_engine, Column, Integer, String, Text
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from postgres.models import Base
 import os
 
 # Настройки подключения (лучше использовать environment variables в k8s)
@@ -11,7 +11,7 @@ DB_PORT = os.getenv('POSTGRES_PORT', '5432')
 DB_NAME = os.getenv('POSTGRES_DB', 'myapp')
 
 # Формируем строку подключения
-DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+DATABASE_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 # Создаем движок SQLAlchemy
 engine = create_engine(
@@ -20,18 +20,7 @@ engine = create_engine(
     echo=True  # Логирование SQL-запросов (отключить в продакшене)
 )
 
-Base = declarative_base()
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-# Пример модели
-class User(Base):
-    __tablename__ = "users"
-
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String(50), unique=True, index=True)
-    email = Column(String(100), unique=True, index=True)
-    description = Column(Text, nullable=True)
+Session = sessionmaker(engine, autoflush=True)
 
 
 def init_db():
@@ -44,13 +33,13 @@ def init_db():
         raise
 
 
-def get_db():
+def get_session():
     """Зависимость для получения сессии БД"""
-    db = SessionLocal()
+    session = Session(engine)
     try:
-        yield db
+        yield session
     finally:
-        db.close()
+        session.close()
 
 
 if __name__ == "__main__":
