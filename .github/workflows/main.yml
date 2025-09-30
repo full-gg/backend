@@ -39,6 +39,7 @@ jobs:
           --set-string image.name=$IMAGE_NAME \
           --set-string image.tag=$GITHUB_SHA \
           --namespace=$NAMESPACE \
-          -f .helm/values.yaml
+          -f .helm/values.yaml \
+          -f .helm/.encrypted/secrets.yaml
     - name: Wait for deploy
       run: kubectl rollout status deployment $RELEASE_NAME --namespace=$NAMESPACE --timeout=300s
