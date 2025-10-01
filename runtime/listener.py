@@ -95,7 +95,7 @@ def get_test():
 def post_answer():
     data = request.get_json()
     user_id = data["user_id"]
-    test_id = data["id"]
+    test_id = int(data["id"])
     answers = data["answers"]
     with Session() as session:
         correct_answers = session.get(Tests, test_id).answers
