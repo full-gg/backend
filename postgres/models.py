@@ -4,15 +4,26 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 
+default_test_statuses = [
+    {"id": "0", "name": "Вклады", "status": "available"},
+    {"id": "1", "name": 'Вклад "Плюсовой"', "status": "unavailable"},
+    {"id": "2", "name": 'Вклад "Обгоняй"', "status": "unavailable"},
+    {"id": "3", "name": "Кредиты", "status": "available"},
+    {"id": "4", "name": "Ипотечный кредит", "status": "unavailable"},
+    {"id": "5", "name": "Кредит наличными", "status": "unavailable"},
+]
+
+
 class User(Base):
     __tablename__ = "users"
 
     id = Column(String(50), primary_key=True, index=True)
-    health = Column(Integer)
-    salary = Column(Integer)
-    cash = Column(Integer)
-    deposit = Column(Integer)
+    health = Column(Integer, default=3)
+    salary = Column(Integer, default=150_000)
+    cash = Column(Integer, default=0)
+    deposit = Column(Integer, default=0)
     tests_status = Column(JSON)
+    avatar = Column(Integer, default=0)
 
 
 class Tests(Base):

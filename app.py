@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from postgres.client import Session
-from postgres.models import User, Global, Tests
+from postgres.models import User, Global, Tests, default_test_statuses
 import random
 
 app = Flask(__name__)
@@ -33,14 +33,7 @@ def auth():
                     salary=150_000,
                     cash=150_000,
                     deposit=0,
-                    tests_status=[
-                        {"id": "0", "name": "Вклады", "status": "available"},
-                        {"id": "1", "name": 'Вклад "Плюсовой"', "status": "unavailable"},
-                        {"id": "2", "name": 'Вклад "Обгоняй"', "status": "unavailable"},
-                        {"id": "3", "name": "Кредиты", "status": "available"},
-                        {"id": "4", "name": "Ипотечный кредит", "status": "unavailable"},
-                        {"id": "5", "name": "Кредит наличными", "status": "unavailable"},
-                    ]
+                    tests_status=default_test_statuses
                 )
             )
             session.commit()
@@ -123,3 +116,29 @@ def post_answer():
                 user.tests_status[i]["status"] = "available"
         session.commit()
         return jsonify({"correct_answers": f"{matching_answers}/{len(answers)}", "salary_addition": "salary_addition", "new_salary": new_salary})
+
+
+@app.route('/progress', methods=["GET"])
+def progress():
+    user_id = request.args.get("user_id")
+    return jsonify(random.randint(0, 100))
+
+
+@app.route('/avatar', methods=["GET"])
+def get_avatar():
+    user_id = request.args.get("user_id")
+    with Session() as session:
+        avatar = session.get(User, user_id).avatar
+        return jsonify(avatar)
+
+
+@app.route('/avatar', methods=["PUT"])
+def put_avatar():
+    data = request.get_json()
+    user_id = data["user_id"]
+    new_avatar = data["new_avatar"]
+    with Session() as session:
+        user = session.query(User).filter_by(id=user_id).first()
+        user.avatar = new_avatar
+        session.commit()
+        return Response(status=201)
