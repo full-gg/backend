@@ -1,11 +1,11 @@
 from flask import Flask, request, jsonify, Response
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
+from flask_cors import CORS
 from postgres.client import Session
 from postgres.models import User, Global, Tests
 import random
 
 app = Flask(__name__)
+cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
 
 test_dependencies = {0: [1, 2], 3: [4, 5]}
