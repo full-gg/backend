@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from postgres.client import Session
 from postgres.models import User, Global, Tests, default_test_statuses
-import random
+from sqlalchemy.orm.attributes import flag_modified
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
@@ -110,18 +110,27 @@ def post_answer():
         salary_addition = session.get(Global, 0).salary_addition * reward
         user = session.query(User).filter_by(id=user_id).first()
         new_salary = user.salary + salary_addition
+        print(f"{user.tests_status=}")
         user.salary = new_salary
         if test_id in test_dependencies:
             for i in test_dependencies[test_id]:
                 user.tests_status[i]["status"] = "available"
+        user.tests_status[test_id]["status"] = "passed"
+        print(f"{user.tests_status=}")
+        flag_modified(user, "tests_status")
         session.commit()
-        return jsonify({"correct_answers": f"{matching_answers}/{len(answers)}", "salary_addition": "salary_addition", "new_salary": new_salary})
+        return jsonify({"correct_answers": f"{matching_answers}/{len(answers)}", "salary_addition": f"{salary_addition}", "new_salary": new_salary})
 
 
 @app.route('/progress', methods=["GET"])
 def progress():
     user_id = request.args.get("user_id")
-    return jsonify(random.randint(0, 100))
+    action(user_id)
+    with Session() as session:
+        target = session.get(Global, 0).target
+        user = session.query(User).filter_by(id=user_id).first()
+        progress = (user.cash + user.deposit) * 100 // target
+        return jsonify(progress)
 
 
 @app.route('/avatar', methods=["GET"])
