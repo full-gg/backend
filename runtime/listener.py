@@ -125,7 +125,6 @@ def post_answer():
 @app.route('/progress', methods=["GET"])
 def progress():
     user_id = request.args.get("user_id")
-    action(user_id)
     with Session() as session:
         target = session.get(Global, 0).target
         user = session.query(User).filter_by(id=user_id).first()
