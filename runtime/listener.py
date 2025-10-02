@@ -15,7 +15,7 @@ def action(user_id):
     with Session() as session:
         user = session.query(User).filter_by(id=user_id).first()
         if user.health == 0:
-            return Response("No health available", status=400)
+            return Response("No health available", status=403)
         user.health -= 1
         session.commit()
 
@@ -75,7 +75,6 @@ def get_name():
 @app.route('/lectures', methods=["GET"])
 def get_lectures():
     user_id = request.args.get("user_id")
-    action(user_id)
     with Session() as session:
         lectures = session.get(User, user_id).tests_status
         return jsonify(lectures)
@@ -85,7 +84,8 @@ def get_lectures():
 def get_test():
     user_id = request.args.get("user_id")
     test_id = request.args.get("test_id")
-    action(user_id)
+    if isinstance(resp := action(user_id), Response):
+        return resp
     with Session() as session:
         questions = session.get(Tests, test_id).questions
         return jsonify(questions)
